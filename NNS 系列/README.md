@@ -9,18 +9,18 @@
 * 37 个节点（可动态调整）
 * 共 10 个 Canister：registry、governance、ledger、root、cycles-minting、lifeline、genesis-token、identity、nns-ui、archive-node
 
-| **Name**       | **Principal/Canister id**    | **Controller** | **Functions**         |
-| -------------- | ---------------------------- | -------------- | --------------------- |
-| registry       | rwlgt-iiaaa-aaaaa-aaaaa-cai  | root           | 注册保存全局信息         |
-| governance     | rrkah-fqaaa-aaaaa-aaaaq-cai  | root           | 神经元的管理、投票       ｜
-| ledger         | ryjl3-tyaaa-aaaaa-aaaba-cai  | root           | 实现 ICP 的功能         ｜
-| root           | r7inp-6aaaa-aaaaa-aaabq-cai  | lifeline       | 控制其他 NNS canisters ｜
-| cycles-minting | rkp4c-7iaaa-aaaaa-aaaca-cai  | root           | 将 ICP 兑换成 Cycles    |
-| lifeline       | rno2w-sqaaa-aaaaa-aaacq-cai  | root           | 控制 root canister     |
-| genesis-token  | renrk-eyaaa-aaaaa-aaada-cai  | root           | 创世纪时的 token 分配    |
-| identity       | rdmx6-jaaaa-aaaaa-aaadq-cai  | root           | 用户身份抽象             |
-| nns-ui         | qoctq-giaaa-aaaaa-aaaea-cai  | root           | 方便用户使用 NNS 功能    |
-| archive-node   | qjdve-lqaaa-aaaaa-aaaeq-cai  | root           | 存储 Ledger 的历史记录  |
+| **Name**       | **Principal/Canister id**    | **Controller** | **Functions**        
+| -------------- | ---------------------------- | -------------- | ---------------------
+| registry       | rwlgt-iiaaa-aaaaa-aaaaa-cai  | root           | 注册保存全局信息
+| governance     | rrkah-fqaaa-aaaaa-aaaaq-cai  | root           | 神经元的管理、投票
+| ledger         | ryjl3-tyaaa-aaaaa-aaaba-cai  | root           | 实现 ICP 的功能
+| root           | r7inp-6aaaa-aaaaa-aaabq-cai  | lifeline       | 控制其他 NNS canisters
+| cycles-minting | rkp4c-7iaaa-aaaaa-aaaca-cai  | root           | 将 ICP 兑换成 Cycles
+| lifeline       | rno2w-sqaaa-aaaaa-aaacq-cai  | root           | 控制 root canister
+| genesis-token  | renrk-eyaaa-aaaaa-aaada-cai  | root           | 创世纪时的 token 分配
+| identity       | rdmx6-jaaaa-aaaaa-aaadq-cai  | root           | 用户身份抽象
+| nns-ui         | qoctq-giaaa-aaaaa-aaaea-cai  | root           | 方便用户使用 NNS 功能
+| archive-node   | qjdve-lqaaa-aaaaa-aaaeq-cai  | root           | 存储 Ledger 的历史记录
 
 Canister Id 的生成：
 ```rust
@@ -40,14 +40,23 @@ pub const REGISTRY_CANISTER_ID: CanisterId =
 
 ## 目录
 
-**[NNS 系列之 Registry](Registry.md)**
+**[NNS 系列之 Registry](Registry.md)**   
+
 **[NNS 系列之 Governance](Governance.md)**
+
 **[NNS 系列之 Ledger](Ledger.md)**
+
 **[NNS 系列之 Root](Root.md)**
+
 **[NNS 系列之 Cycles-minting](Cycles-minting.md)**
+
 **[NNS 系列之 Lifeline](Lifeline.md)**
+
 **[NNS 系列之 Genesis-token](Genesis-token.md)**
+
 **[NNS 系列之 Identity](Identity.md)**
+
 **[NNS 系列之 NNS-ui](NNS-ui.md)**
+
 **[NNS 系列之 Archive-node](Archive-node.md)**
 
