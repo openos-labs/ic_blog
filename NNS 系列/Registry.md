@@ -83,11 +83,17 @@ fn registry_mut() -> &'static mut Registry {
 ### canister_init
 在 `canister` 部署的时候，需要初始化一些状态，执行初始化函数，和 Solidity 的 constructor（构造函数）类似。比如部署一个 token 合约，需要初始化 token 的名字，符号，总量等信息。这就是 canister_init 函数的功能。
 
-先执行了 `hook()` 函数，`hook()` 来自于 `dfn_core` 这个包里面，去看一下它的具体内容，它执行了两个函数，`set_stdout()` 和 `set_panic_hook()`。根据 `set_panic_hook()` 的具体内容，整的来说，`hook()` 它的功能是设置好标准输出，以及程序出现 Panic 时，把错误消息，以及所在文件，第几行，第几列打印出来。
+先执行了 `hook()` 函数，`hook()` 来自于 `dfn_core` 这个包里面，去看一下它的具体内容，它执行了两个函数，`set_stdout()` 和 `set_panic_hook()`。根据 `set_panic_hook()` 的具体内容，总的来说，`hook()` 它的功能是设置好标准输出，以及程序出现 Panic 时，把错误消息，以及所在文件，第几行，第几列的 log 打印出来。
 ```rs
 // https://github.com/dfinity/ic/blob/8fffeb4be1/rs/registry/canister/canister/canister.rs#L118
 dfn_core::printer::hook();
 
+// https://github.com/dfinity/ic/blob/8fffeb4be1/rs/rust_canisters/dfn_core/src/printer.rs
+/// Sets stdout, stderr, and a custom panic hook
+pub fn hook() {
+    set_stdout();
+    set_panic_hook();
+}
 
 // https://github.com/dfinity/ic/blob/8fffeb4be1/rs/rust_canisters/dfn_core/src/printer.rs#L118-L146
 /// Sets a custom panic hook, uses debug.trace
@@ -113,12 +119,6 @@ pub fn set_panic_hook() {
         crate::api::trap_with(&err_info);
     }));
 }
-
-/// Sets stdout, stderr, and a custom panic hook
-pub fn hook() {
-    set_stdout();
-    set_panic_hook();
-}
 ```
 
 接下来执行 `recertify_registry()` 这个函数。
@@ -136,16 +136,16 @@ fn recertify_registry() {
 }
 ```
 
-先从里面开始看，`registry()` 返回了一个只读的那个全局的 Registry 实例。然后去拿它的 `latest_version()`，其实就是拿的它 version 字段的值，当前版本号，一个 u64 的值。
+先从里面的 `registry()` 开始看，它返回了一个只读的那个全局的 Registry 实例。然后去拿它的 `latest_version()`，其实就是拿的它 version 字段的值，当前版本号，一个 u64 的值。
 
 ```rs
 // https://github.com/dfinity/ic/blob/8fffeb4be1/rs/registry/canister/src/registry.rs#L177-L179
-    pub fn latest_version(&self) -> Version {
-        self.version
-    }
+pub fn latest_version(&self) -> Version {
+    self.version
+}
 ```
 
-然后把这个 Version 输入到 `current_version_tree()` 里面，看一下 `current_version_tree()` , 它接受一个 Version 类型，我们之前在 struct 看过，其实就是 u64，然后返回一个 Labeled 节点，把 current_version 存为数据，连接着一个 Leaf 叶子节点，里面存了传进去的 Version 的编码。
+然后把这个 Version 输入到 `current_version_tree()` 里面，看一下 `current_version_tree()` , 它接受一个 Version 类型，我们之前在 struct 看过，其实就是 u64，然后返回一个 HashTree 里面的 Labeled 节点，把 current_version 存为数据标签，连接着一个 Leaf 叶子节点，里面存了传进去的 Version 的编码。
 
 
 ```rs
@@ -166,7 +166,7 @@ pub fn current_version_tree(v: Version) -> HashTree<'static> {
 ```
 接下来需要看一下 HashTree 是怎么回事，以及包括 ic-certified-map crate（包） 的函数：fork_hash，labeled_hash。
 
-下面定义了一个 HashTree 的数据结构，一个树结构，里面有几类节点，比如空节点；下面有两个子节点，它本身没有任何值的 Fork 节点；下面有一个节点，并且本身带标签（数据）的 Labeled 节点；或者只有数据的 Leaf 节点，或者是 [u8; 32] 的 Pruned 节点。
+下面定义了一个 Hash, Sha256 的输出，32 位的 u8 数组。还定义了一个 HashTree 的数据结构，一个树结构，里面有几类节点，比如空节点；下面有两个子节点，它本身没有任何值的 Fork 节点；下面有一个节点，并且本身带标签（数据）的 Labeled 节点；或者只有数据的 Leaf 节点，或者是 [u8; 32] 的 Pruned 节点。
 ```rs
 // https://github.com/dfinity/cdk-rs/blob/319795e9b4/src/ic-certified-map/src/hashtree.rs#L9-L49
 
@@ -222,7 +222,7 @@ fn domain_sep(s: &str) -> sha2::Sha256 {
 ```
 所以 fork_hash, labeled_hash 都是输入不可变量，通过标准的 Sha256，然后往 Hash 的 buf 里面，填充一些自定义字段，比如 ic-hashtree-fork 这样的字符串。最后输出 32 位的 bytes 数组。
 
-HashTree 实现了一个方法，reconstruct() 其实输入一个 HashTree，输出一个 Hash。Hash 就是 32 位的 Bytes 数组。
+HashTree 实现了一个方法，reconstruct() 其中输入一个 HashTree，输出一个 Hash。Hash 就是 32 位的 Bytes 数组。`reconstruct()` 这个函数，和前面的 fork_hash(),  labeled_hash(), leaf_hash() 相呼应，总的来说，将一个 HashTree 这样的树，递归的 hash 了一遍，并最后输出一个 32 位的 u8 数组。
 ```rs
 impl HashTree<'_> {
     pub fn reconstruct(&self) -> Hash {
@@ -253,7 +253,8 @@ impl<K: 'static + AsRef<[u8]>, V: AsHashTree + 'static> AsHashTree for RbTree<K,
 }
 ```
 
-所以整的来说，就是根据当前 Registry 的版本号，以及 changelog，生成了 32 位的 Hash 结果，root_hash。
+然后 labeled_hash 输入一个 "delta" 的字符串的 bytes 形式，以及 changelog 的 subtree_hash，将结果和前面的到的 reconstruct() 的结果输入到 fork_hash，最后得到 root_hash。
+
 ```rs
     set_certified_data(&root_hash);
 
@@ -269,8 +270,12 @@ pub fn set_certified_data(data: &[u8]) {
 }
 
 ```
-然后调用系统接口 certified_data_set 把这个 root_hash 设置成认证数据。认证数据的具体内容可以看 interface-spec 文档，也可以看[官方视频](https://youtu.be/mZbFhRIHIiY)，简单的说是你 query 一个数据的时候，没有经过全网共识，直接从一个节点拿的，可能该节点作恶。certified_data 是之前通过共识过放进去的，下次被 query 时还能携带一个全网的签名，就可以验证这个数据安全性很高的。好像 Canister Signature 也和这个东西有关，期待有人更深入的分享 certified_data 相关。
+然后调用系统接口 certified_data_set 把这个 root_hash 设置成认证数据。认证数据的具体内容可以看 interface-spec 文档，也可以看[官方视频](https://youtu.be/mZbFhRIHIiY)，简单的说是你 query 一个数据的时候，没有经过全网共识，直接从一个节点拿的，可能该节点作恶。certified_data 是之前通过共识过放进去的，下次被 query 时还能携带一个全网的签名，就可以验证这个数据的安全性很高的。好像 Canister Signature 也和这个东西有关，期待有人更深入的分享 certified_data 相关。
 
+所以总的来说，recertify_registry() 只用了当前 Registry 的 version，changelog 这两个字段，经过一系列的 hash，生成了 32 位的 Hash 结果，root_hash。 root_hash 是能够反映 Registry 在 version 和 changelog 上的变化的。最后，这个 root_hash 设置成 certified_data。有点奇怪的是 Registry 里面的 store 字段并没有影响到 root_hash，store 的变化可能没那么重要？到时再看 store 的用处。
+
+
+接下来：
 ```rs
     let init_payload =
         Decode!(&arg_data(), RegistryCanisterInitPayload)
@@ -298,7 +303,7 @@ pub fn arg_data() -> Vec<u8> {
 
 <img src="./images/RegistryCanisterInitPayload.png" alt="RegistryCanisterInitPayload" width="500"/>
 
-这个类型，首先有个唯一的字段 mutations，它是一个动态数组，而里面的 RegistryAtomicMutateRequest 有两个字段，其中一个也叫 mutations，另一个叫 preconditions。它们都是包裹了一些 `Vec<u8>` 的值。
+这个类型，首先有个唯一的字段 mutations，它是一个动态数组，而里面的 RegistryAtomicMutateRequest 有两个字段，其中一个也叫 mutations，另一个叫 preconditions。它们里面的字段都包含了一些 `Vec<u8>` 的值。
 
 
 ```rs
@@ -404,6 +409,7 @@ fn apply_mutations_as_version(
     };
     let bytes = pb_encode(&req);
 
+    // version 是之前已经 +1 的版本，并转换成 [u8; 8]
     self.changelog.insert(version.into(), bytes);
 
     for mutation in req.mutations {
@@ -433,10 +439,22 @@ pub enum Type {
     /// database world, and means Update or Insert.
     Upsert = 4,
 }
+
+fn pb_encode(msg: &impl prost::Message) -> Vec<u8> {
+    let mut buf = vec![];
+    msg.encode(&mut buf).unwrap();
+    buf
+}
 ```
 先对输入 mutations 进行了修改，然后对整个 RegistryAtomicMutateRequest 编码，并写入 changelog，然后把 RegistryMutation 按照 key 和 value 写入到 store。
 
-整的来说是把参数里面的数据结构写入到 Registry，并且增加了 n 个版本号，插入了 n 条 changelog。在 store 里面增加了 n $\times$ m 个数据对。其中 n 是最外面 mutations 的数据长度，m 是里面的 mutations 的平均长度。
+总的来说是把参数里面的数据结构写入到 Registry，并且增加了 n 个版本号，插入了 n 条 changelog。在 store 里面增加了 n * m 个数据对。其中 n 是最外面 mutations 的数据长度，m 是里面的 mutations 的平均长度。
+
+需要注意的是
+1. changelog 里面，将整个最里面的 mutations 编码作为 value，以 version 作为 key，插入到 changelog 的红黑树里面，已经把版本和对应的数据都保存好了，store 里面存的可能是为了方便查询的冗余数据，因为使用了 Map 结构。
+2. RegistryAtomicMutateRequest 里面的 preconditions 字段没有使用，代码里面也是通过构造一个空的数组来填充的：`preconditions: vec![]`
+
+最后，又调用了 `recertify_registry()`，将刚刚更新的 version 和 changelog 变化得到 root_hash，然后存到 certified_data 里面。
 
 ### canister_pre_upgrade
 
@@ -455,8 +473,9 @@ fn canister_pre_upgrade() {
     stable::set(&serialized);
 }
 ```
-这个函数先打印一些信息出来，然后获取 Registry 示例 registry，其实这里没必要用 mut，因为并不会修改状态。然后根据 registry 的信息构造了一个 RegistryCanisterStableStorage 数据，并且把这个数据编码到一个 buff serialized 里面，然后调用 stable 接口保存这个数据。
+这个函数先打印一些信息出来，然后获取 Registry 示例 registry，其实这里没必要用 mut，因为并不会修改状态（删掉 mut 可以编译通过）。然后根据 registry 的信息构造了一个 RegistryCanisterStableStorage 数据，并且把这个数据编码到一个 buff serialized 里面，然后调用 stable 的 set 接口保存这个数据。
 
+来看一下 stable 的 set 是怎么存的
 ```rs
 /// The wasm page size is 64KiB
 const PAGE_SIZE: f64 = 64.0 * 1024.0;
@@ -498,7 +517,7 @@ pub fn set_length(len: u32) {
     unsafe { ic0::stable_write(0, len_bytes.as_ptr() as u32, LENGTH_BYTES) }
 }
 ```
-来看一下 stable 是怎么存的，有一个 wasm page 的概念，每个 page 64 KiB，ensure_capacity 函数将 page 扩展到足够的空间，然后调用系统接口 stable_write 从第 4 bytes 开始往里面写数据，最后往里面的前 4 个 bytes 存放数据的长度。
+有一个 wasm page 的概念，每个 page 64 KiB，ensure_capacity 函数将 page 扩展到足够的空间，然后调用系统接口 stable_write 从第 4 bytes 开始往里面写数据，最后往里面的前 4 个 bytes 存放数据的长度。
 
 接口看一下 RegistryCanisterStableStorage 数据结构：
 
@@ -542,7 +561,7 @@ pub fn serializable_form(&self) -> RegistryStableStorage {
     self.serializable_form_at(ReprVersion::Version1)
 }
 ```
-升级的时候，RegistryStableStorage 的 deltas 字段里面并没有存数据，而且 version 也是指定的，因此原来状态变量 Registry 里面的两个字段，version，store 都没有保存。
+升级的时候，RegistryStableStorage 的 deltas 字段里面并没有存数据，而且 version 也是指定的，因此原来状态变量 Registry 里面的两个字段，version，store 都没有保存。不过，之前得出，changelog 里面反正有所有的信息：有 n 个树的节点，当前 version 就是 n，store 里面的值也可以通过遍历 RbTree 的节点来得到。
 
 ### canister_post_upgrade
 升级后函数，同样的，执行 hook()，设置好标准输出以及 panic 时打印错误信息，发生 panic 所在的代码位置。
@@ -564,7 +583,8 @@ fn canister_post_upgrade() {
     recertify_registry();
 }
 ```
-然后接着从 stable 存储里面读到对应的数据，有一个 stable_read 的系统接口，可以读到。
+
+在打印一些升级消息之后，接着从 stable 存储里面读到对应的数据，有一个 stable_read 的系统接口，可以读到。先读前 4 字节，获取整个的长度，然后再根据长度获取存储的数据。
 ```rs
 /// Gets the contents of the stable memory
 pub fn get() -> Vec<u8> {
@@ -585,7 +605,9 @@ pub fn length() -> u32 {
 }
 ```
 
-todo: 
+看一下怎么从 RegistryStableStorage 恢复出 Registry 的。先检查 Registry 是不是所有的字段都是 Default，然后得到 version。之前 version 是通过指定 ReprVersion::Version1，也就是执行 Version1 这个代码分支。先遍历 changelog 字段，获取到 entry 这个 ChangelogEntry 类型的实例，对 Registry 先填充无用信息，目的是把版本号对应起来，然后把 entry 里面的 encoded_mutation 解码成 RegistryAtomicMutateRequest 类型，并将获取到的 mutations 写入 Registry。
+
+而且从前面可以看到，entry（ChangelogEntry 类型）的 encoded_mutation 是直接复制的 Registry 的节点（`Node<K, V>`）的 V，而这个 V 是直接从 RegistryAtomicMutateRequest encode 过来的。所以只是 canister_init 时所有的数据（包括 store 和 changelog）都会恢复过来。
 
 ```rs
 /// Sets the content of the registry from its serialized representation.
@@ -643,52 +665,13 @@ pub fn from_serializable_form(&mut self, stable_repr: RegistryStableStorage) {
             }
         }
         ReprVersion::Unspecified => {
-            let mut mutations_by_version = BTreeMap::<Version, Vec<RegistryMutation>>::new();
-            for delta in stable_repr.deltas.into_iter() {
-                self.version = max(
-                    self.version,
-                    delta
-                        .values
-                        .last()
-                        .map(|registry_value| registry_value.version)
-                        .unwrap_or(0),
-                );
-
-                for v in delta.values.iter() {
-                    mutations_by_version
-                        .entry(v.version)
-                        .or_default()
-                        .push(RegistryMutation {
-                            mutation_type: if v.deletion_marker {
-                                Type::Delete
-                            } else {
-                                Type::Upsert
-                            } as i32,
-                            key: delta.key.clone(),
-                            value: v.value.clone(),
-                        })
-                }
-
-                self.store.insert(delta.key, VecDeque::from(delta.values));
-            }
-            // We iterated over keys in ascending order, so the mutations
-            // must also be sorted by key, resulting in canonical encoding.
-            self.changelog = mutations_by_version
-                .into_iter()
-                .map(|(v, mutations)| {
-                    (
-                        EncodedVersion::from(v),
-                        pb_encode(&RegistryAtomicMutateRequest {
-                            mutations,
-                            preconditions: vec![],
-                        }),
-                    )
-                })
-                .collect()
+            ···
         }
     }
 }
 ```
+
+总之执行升级后函数，里面会填充一些无用数据，但是之前的数据都恢复过来了。
 
 ### update_authz
 ```rs
@@ -706,7 +689,7 @@ fn update_authz() {
     })
 }
 ```
-根据注释，执行这个函数应该不会修改任何状态。确实也是这样，它首先调用 check_caller_is_root，通过系统接口 msg_caller_copy 获取的调用者的 PrincipalId，然后检查该 PrincipalId 是否和 Root 的 Canister id 对得上。
+根据打印的信息，执行这个函数应该不会修改任何状态。确实也是这样，它首先调用 check_caller_is_root，通过系统接口 msg_caller_copy 获取的调用者的 PrincipalId，然后检查该 PrincipalId 是否和 Root 的 Canister id 对得上。
 
 ```rs
 pub fn check_caller_is_root() {
@@ -725,6 +708,47 @@ pub fn caller() -> PrincipalId {
     PrincipalId::try_from(bytes).unwrap()
 }
 ```
+
+然后接着调用了一个 over 函数，里面有
+
+```rs
+/// Over allows you to create canister endpoints easily
+/// ```no_run
+/// # use dfn_core::over;
+/// #[export_name = "canister_query happy_birthday"]
+/// fn hb() {
+///     fn happy_birthday((name, age): (String, u16)) -> String {
+///         format!("Happy Birthday {}", name)
+///     }
+///     over(dfn_json::json, happy_birthday)
+/// }
+/// ```
+///
+/// This function always call `reply` unless it traps. If you need a function
+/// that may `reject` the call, use one of the _may_reject variant.
+pub fn over<In, Out, F, Witness>(_: Witness, f: F)
+where
+    In: FromWire + NewType,
+    Out: IntoWire + NewType,
+    F: FnOnce(In::Inner) -> Out::Inner,
+    Witness: FnOnce(Out, In::Inner) -> (Out::Inner, In),
+{
+    over_bytes(|inp| {
+        // TODO(RPL-266) Rejecting instead of trapping seems more
+        // natural for deserialization errors. Debate in Jira.
+        let outer = In::from_bytes(inp).expect("Deserialization Failed");
+        let input = outer.into_inner();
+        let res = f(input);
+        let output = Out::from_inner(res);
+        Out::into_bytes(output).expect("Serialization Failed")
+    })
+}
+```
+
+这个 over， 输入两个函数作为参数，
+
+
+
 
 ### current_authz
 ```rs
