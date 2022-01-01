@@ -709,7 +709,7 @@ pub fn caller() -> PrincipalId {
 }
 ```
 
-然后接着调用了一个 over 函数，里面有
+然后接着调用了一个 over 函数，输入两个函数作为参数，具体功能还没理得很清楚（Todo），大概为了方便使用不同的编码，比如有的对外接口是基于 candid，有的是 protobuf，做了个封装。这种方式调用函数后续会有很多。
 
 ```rs
 /// Over allows you to create canister endpoints easily
@@ -745,11 +745,6 @@ where
 }
 ```
 
-这个 over， 输入两个函数作为参数，
-
-
-
-
 ### current_authz
 ```rs
 #[export_name = "canister_query current_authz"]
@@ -766,8 +761,12 @@ fn current_authz() {
     })
 }
 ```
+同样根据打印的信息，执行这个函数应该不会返回有用信息。只是返回 CanisterAuthzInfo 的初始化数据。
+
+<img src="./images/CanisterAuthzInfo.png" alt="CanisterAuthzInfo" width="500"/>
 
 ### get_changes_since
+
 
 
 ### get_certified_changes_since
@@ -781,11 +780,167 @@ fn current_authz() {
 ### get_certified_latest_version
 
 ### atomic_mutate
+atomic_mutate()，这个函数只允许 Governance 和 Root 这两个 canister 来调用。然后，把调用参数反序列化，如果反序列化成功，就对 Registry 的可变实例执行 maybe_apply_mutation_internal() 来进行修改。然后调用 recertify_registry() 来更新 certified_data。最后把返回结果序列化返回给调用者。
+```rs
+#[export_name = "canister_update atomic_mutate"]
+fn atomic_mutate() {
+    let caller = dfn_core::api::caller();
+    //
+    // - The governance canister is always allowed to mutate the registry
+    // - The root canister is also allowed, so that IDs of new NNS canisters can be
+    //   recorded.
+    assert!(
+        caller == GOVERNANCE_CANISTER_ID.get() || caller == ROOT_CANISTER_ID.get(),
+        "{}Principal {} is not authorized to call 'atomic_mutate'.",
+        LOG_PREFIX,
+        caller
+    );
+    println!("{}call 'atomic_mutate' from {}", LOG_PREFIX, caller);
+
+    let response_pb = match deserialize_atomic_mutate_request(arg_data()) {
+        Ok(request_pb) => {
+            registry_mut().maybe_apply_mutation_internal(request_pb.mutations);
+            RegistryAtomicMutateResponse {
+                errors: vec![],
+                version: registry().latest_version(),
+            }
+        }
+        Err(error) => {
+            println!(
+                "{}Received a mutate call, but the request could not de deserialized due to: {}",
+                LOG_PREFIX, error
+            );
+            let mut response_pb = RegistryAtomicMutateResponse::default();
+            let error_pb = RegistryError {
+                code: Code::MalformedMessage as i32,
+                reason: error.to_string(),
+                ..Default::default()
+            };
+            response_pb.errors.push(error_pb);
+            response_pb
+        }
+    };
+
+    recertify_registry();
+
+    let bytes = serialize_atomic_mutate_response(response_pb).expect("Error serializing response");
+    reply(&bytes)
+}
+```
+
+看一下反序列化函数入参是怎么做的，参数需要是 `Vec<u8>` 的类型，它能够解码成 RegistryAtomicMutateRequest 类型就行。然后序列号返回结果是把返回结果编码成 `Vec<u8>`。
+
+```rs
+/// Deserializes the arguments for a request to the atomic_mutate() function in
+/// the registry canister, from protobuf.
+pub fn deserialize_atomic_mutate_request(
+    request: Vec<u8>,
+) -> Result<pb::v1::RegistryAtomicMutateRequest, Error> {
+    match pb::v1::RegistryAtomicMutateRequest::decode(&request[..]) {
+        Ok(request) => Ok(request),
+        Err(error) => Err(Error::MalformedMessage(error.to_string())),
+    }
+}
+
+
+/// Serializes a response for a atomic_mutate() request to the registry
+/// canister.
+//
+// This uses the PB structs directly as this function is meant to
+// be used in the registry canister only and thus there is no problem with
+// leaking the PB structs to the rest of the code base.
+pub fn serialize_atomic_mutate_response(
+    response: pb::v1::RegistryAtomicMutateResponse,
+) -> Result<Vec<u8>, Error> {
+    let mut buf = Vec::new();
+    match response.encode(&mut buf) {
+        Ok(_) => Ok(buf),
+        Err(error) => Err(Error::MalformedMessage(error.to_string())),
+    }
+}
+```
+这里能够直接 .encode() .decode() 就把这些工作完成了，是因为 RegistryAtomicMutateRequest 这个 struct 已经实现好 Message 这个 trait，里面包含 encode，decode 方法。
+
+```rs
+/// Message corresponding to a list of mutations to apply, atomically, to the
+/// registry canister. If any of the mutations fails, the whole operation will fail.
+#[derive(candid::CandidType, candid::Deserialize, Eq)]
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct RegistryAtomicMutateRequest {
+    /// The set of mutations to apply to the registry.
+    #[prost(message, repeated, tag="1")]
+    pub mutations: ::prost::alloc::vec::Vec<RegistryMutation>,
+    /// Preconditions at the key level.
+    #[prost(message, repeated, tag="5")]
+    pub preconditions: ::prost::alloc::vec::Vec<Precondition>,
+}
+```
+
+最后看一下 reply()，它调用系统接口 msg_reply_data_append() 和 msg_reply() 来返回数据。这样除了函数本身有一个返回值之外，还可以通过这种方式返回数据。
+
+```rs
+/// Replies with the given byte array.
+/// Note, currently we do not support chunkwise assembling of the response.
+/// Warning if you use this with an endpoint it will cause a trap due to the
+/// message trying to return multiple responses
+pub fn reply(payload: &[u8]) {
+    unsafe {
+        ic0::msg_reply_data_append(payload.as_ptr() as u32, payload.len() as u32);
+        ic0::msg_reply();
+    }
+}
+```
+
 
 ### bless_replica_version
 
+```rs
+#[export_name = "canister_update bless_replica_version"]
+fn bless_replica_version() {
+    check_caller_is_governance_and_log("bless_replica_version");
+    over(candid_one, |payload: BlessReplicaVersionPayload| {
+        registry_mut().do_bless_replica_version(payload);
+        recertify_registry();
+    });
+}
+```
+这个函数只允许 Governance Canister 来调用。
+
+```rs
+fn check_caller_is_governance_and_log(method_name: &str) {
+    let caller = dfn_core::api::caller();
+    println!("{}call: {} from: {}", LOG_PREFIX, method_name, caller);
+    assert_eq!(
+        caller,
+        GOVERNANCE_CANISTER_ID.into(),
+        "{}Principal: {} is not authorized to call this method: {}",
+        LOG_PREFIX,
+        caller,
+        method_name
+    );
+}
+```
+
+<img src="./images/BlessReplicaVersionPayload.png" alt="BlessReplicaVersionPayload" width="500"/>
+
 
 ### update_subnet_replica_version
+
+```rs
+
+#[export_name = "canister_update update_subnet_replica_version"]
+fn update_subnet_replica_version() {
+    check_caller_is_governance_and_log("update_subnet_replica_version");
+    over(candid_one, |payload: UpdateSubnetReplicaVersionPayload| {
+        registry_mut().do_update_subnet_replica_version(payload);
+        recertify_registry();
+    });
+}
+```
+
+
+
+
 
 ### update_icp_xdr_conversion_rate
 
