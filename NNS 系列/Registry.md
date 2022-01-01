@@ -301,11 +301,7 @@ pub fn arg_data() -> Vec<u8> {
 接着申明并初始化 init_payload 变量为 `Vec<u8>` 形式的参数解码成 RegistryCanisterInitPayload 类型的数据。
 
 
-<img src="./images/RegistryCanisterInitPayload.png" alt="RegistryCanisterInitPayload" width="600"/>
-
-
-<img src="./images/Picture1.png" alt="RegistryCanisterInitPayload" width="500"/>
-
+<img src="./images/RegistryCanisterInitPayload.png" style="width:700px;position:relative;left:50%;margin-left:-350px;" alt="RegistryCanisterInitPayload" />
 
 
 这个类型，首先有个唯一的字段 mutations，它是一个动态数组，而里面的 RegistryAtomicMutateRequest 有两个字段，其中一个也叫 mutations，另一个叫 preconditions。它们里面的字段都包含了一些 `Vec<u8>` 的值。
