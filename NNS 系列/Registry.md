@@ -301,7 +301,7 @@ pub fn arg_data() -> Vec<u8> {
 接着申明并初始化 init_payload 变量为 `Vec<u8>` 形式的参数解码成 RegistryCanisterInitPayload 类型的数据。
 
 
-<img src="./images/RegistryCanisterInitPayload.png" alt="RegistryCanisterInitPayload" width="500"/>
+<img src="./images/RegistryCanisterInitPayload.png" alt="RegistryCanisterInitPayload" width="600"/>
 
 
 <img src="./images/Picture1.png" alt="RegistryCanisterInitPayload" width="500"/>
