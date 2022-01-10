@@ -38,6 +38,7 @@
     - [add_or_remove_data_centers](#add_or_remove_data_centers)
     - [update_unassigned_nodes_config](#update_unassigned_nodes_config)
     - [get_node_providers_monthly_xdr_rewards](#get_node_providers_monthly_xdr_rewards)
+- [Reference](#reference)
 
 ## 概述
 
@@ -46,7 +47,7 @@ Registry canister，功能上是执行。在 Governance 得到投票结果之后
 ## 数据结构
 
 ### REGISTRY
-<img src="./images/Registry.png" alt="Registry" width="500"/>
+<img src="./images/Registry/Registry.png" alt="Registry" width="700"/>
 
 * 核心的数据结构就是 Registry。它有三个字段:
   * version，一个全局的计数器，每次有 mutation 作用于 Registry，就会 +1。
@@ -59,7 +60,7 @@ Registry canister，功能上是执行。在 Governance 得到投票结果之后
 实现了一个全局唯一的静态变量，`REGISTRY`，来存储所有的状态。
 
 并且通过两个函数，`registry()` 以及 `registry_mut()` 来获取到这个变量。它们的区别是上面的 `registry()` 获取到的 `REGISTRY` 只读，不能更改它的状态，下面这个 `registry_mut()` 还能更改其状态。
-```rs
+```rust
 static mut REGISTRY: Option<Registry> = None;
 
 fn registry() -> &'static Registry {
@@ -84,7 +85,7 @@ fn registry_mut() -> &'static mut Registry {
 在 `canister` 部署的时候，需要初始化一些状态，执行初始化函数，和 Solidity 的 constructor（构造函数）类似。比如部署一个 token 合约，需要初始化 token 的名字，符号，总量等信息。这就是 canister_init 函数的功能。
 
 先执行了 `hook()` 函数，`hook()` 来自于 `dfn_core` 这个包里面，去看一下它的具体内容，它执行了两个函数，`set_stdout()` 和 `set_panic_hook()`。根据 `set_panic_hook()` 的具体内容，总的来说，`hook()` 它的功能是设置好标准输出，以及程序出现 Panic 时，把错误消息，以及所在文件，第几行，第几列的 log 打印出来。
-```rs
+```rust
 // https://github.com/dfinity/ic/blob/8fffeb4be1/rs/registry/canister/canister/canister.rs#L118
 dfn_core::printer::hook();
 
@@ -121,8 +122,11 @@ pub fn set_panic_hook() {
 }
 ```
 
-接下来执行 `recertify_registry()` 这个函数。
-```rs
+接下来执行 `recertify_registry()` 这个函数。先整体说一下 [certified_data](https://medium.com/dfinity/how-internet-computer-responses-are-certified-as-authentic-2ff1bb1ea659)。
+
+<img src="./images/Registry/Certified%20Variables.png" alt="Certified Variables" width="700"/>
+
+```rust
 recertify_registry();
 
 fn recertify_registry() {
@@ -138,17 +142,17 @@ fn recertify_registry() {
 
 先从里面的 `registry()` 开始看，它返回了一个只读的那个全局的 Registry 实例。然后去拿它的 `latest_version()`，其实就是拿的它 version 字段的值，当前版本号，一个 u64 的值。
 
-```rs
+```rust
 // https://github.com/dfinity/ic/blob/8fffeb4be1/rs/registry/canister/src/registry.rs#L177-L179
 pub fn latest_version(&self) -> Version {
     self.version
 }
 ```
 
-然后把这个 Version 输入到 `current_version_tree()` 里面，看一下 `current_version_tree()` , 它接受一个 Version 类型，我们之前在 struct 看过，其实就是 u64，然后返回一个 HashTree 里面的 Labeled 节点，把 current_version 存为数据标签，连接着一个 Leaf 叶子节点，里面存了传进去的 Version 的编码。
+然后把这个 Version 输入到 `current_version_tree()` 里面，看一下 `current_version_tree()` , 它接受一个 Version 类型，我们之前在 struct 看过，其实就是 u64，然后返回一个 HashTree 里面的 Labeled 节点，把 current_version 存为数据标签，连接着一个 Leaf 叶子节点，里面存了传进去的 Version 的编码。(leb128 是 [Little Endian Base 128](https://en.wikipedia.org/wiki/LEB128) 是编码算法，对于存储大整数有空间优势)
 
 
-```rs
+```rust
 use ic_certified_map::{labeled, HashTree};
 
 /// The maximum amount of bytes a 64-bit number can occupy when encoded in
@@ -167,7 +171,7 @@ pub fn current_version_tree(v: Version) -> HashTree<'static> {
 接下来需要看一下 HashTree 是怎么回事，以及包括 ic-certified-map crate（包） 的函数：fork_hash，labeled_hash。
 
 下面定义了一个 Hash, Sha256 的输出，32 位的 u8 数组。还定义了一个 HashTree 的数据结构，一个树结构，里面有几类节点，比如空节点；下面有两个子节点，它本身没有任何值的 Fork 节点；下面有一个节点，并且本身带标签（数据）的 Labeled 节点；或者只有数据的 Leaf 节点，或者是 [u8; 32] 的 Pruned 节点。
-```rs
+```rust
 // https://github.com/dfinity/cdk-rs/blob/319795e9b4/src/ic-certified-map/src/hashtree.rs#L9-L49
 
 /// SHA-256 hash bytes.
@@ -223,7 +227,7 @@ fn domain_sep(s: &str) -> sha2::Sha256 {
 所以 fork_hash, labeled_hash 都是输入不可变量，通过标准的 Sha256，然后往 Hash 的 buf 里面，填充一些自定义字段，比如 ic-hashtree-fork 这样的字符串。最后输出 32 位的 bytes 数组。
 
 HashTree 实现了一个方法，reconstruct() 其中输入一个 HashTree，输出一个 Hash。Hash 就是 32 位的 Bytes 数组。`reconstruct()` 这个函数，和前面的 fork_hash(),  labeled_hash(), leaf_hash() 相呼应，总的来说，将一个 HashTree 这样的树，递归的 hash 了一遍，并最后输出一个 32 位的 u8 数组。
-```rs
+```rust
 impl HashTree<'_> {
     pub fn reconstruct(&self) -> Hash {
         match self {
@@ -241,7 +245,7 @@ impl HashTree<'_> {
 ```
 
 可以再去我们之前的 Struct 图看一下，RbTree 是怎么定义的。这里给它实现了一个 root_hash() 的方法，其实就是拿的它 subtree_hash。
-```rs
+```rust
 // https://github.com/dfinity/cdk-rs/blob/319795e9b4/src/ic-certified-map/src/hashtree.rs#L57-L63
 impl<K: 'static + AsRef<[u8]>, V: AsHashTree + 'static> AsHashTree for RbTree<K, V> {
     fn root_hash(&self) -> Hash {
@@ -255,7 +259,7 @@ impl<K: 'static + AsRef<[u8]>, V: AsHashTree + 'static> AsHashTree for RbTree<K,
 
 然后 labeled_hash 输入一个 "delta" 的字符串的 bytes 形式，以及 changelog 的 subtree_hash，将结果和前面的到的 reconstruct() 的结果输入到 fork_hash，最后得到 root_hash。
 
-```rs
+```rust
     set_certified_data(&root_hash);
 
 // https://github.com/dfinity/ic/blob/8fffeb4be1/rs/rust_canisters/dfn_core/src/api.rs#L840-L847
@@ -272,11 +276,10 @@ pub fn set_certified_data(data: &[u8]) {
 ```
 然后调用系统接口 certified_data_set 把这个 root_hash 设置成认证数据。认证数据的具体内容可以看 interface-spec 文档，也可以看[官方视频](https://youtu.be/mZbFhRIHIiY)，简单的说是你 query 一个数据的时候，没有经过全网共识，直接从一个节点拿的，可能该节点作恶。certified_data 是之前通过共识过放进去的，下次被 query 时还能携带一个全网的签名，就可以验证这个数据的安全性很高的。好像 Canister Signature 也和这个东西有关，期待有人更深入的分享 certified_data 相关。
 
-所以总的来说，recertify_registry() 只用了当前 Registry 的 version，changelog 这两个字段，经过一系列的 hash，生成了 32 位的 Hash 结果，root_hash。 root_hash 是能够反映 Registry 在 version 和 changelog 上的变化的。最后，这个 root_hash 设置成 certified_data。有点奇怪的是 Registry 里面的 store 字段并没有影响到 root_hash，store 的变化可能没那么重要？到时再看 store 的用处。
-
+所以总的来说，recertify_registry() 只用了当前 Registry 的 version，changelog 这两个字段，经过一系列的 hash，生成了 32 位的 Hash 结果，root_hash。 root_hash 是能够反映 Registry 在 version 和 changelog 上的变化的。最后，这个 root_hash 设置成 certified_data。Registry 里面的 store 字段并没有影响到 root_hash，后续可以看出每次 store 变化，都会往 changelog 里面存这次变化，所以可能 changelog 里面的数据已经能够反映 store 的信息了。
 
 接下来：
-```rs
+```rust
     let init_payload =
         Decode!(&arg_data(), RegistryCanisterInitPayload)
             .expect("The init argument for the registry canister must be a Candid-encoded RegistryCanisterInitPayload.");
@@ -301,13 +304,13 @@ pub fn arg_data() -> Vec<u8> {
 接着申明并初始化 init_payload 变量为 `Vec<u8>` 形式的参数解码成 RegistryCanisterInitPayload 类型的数据。
 
 
-<img src="./images/RegistryCanisterInitPayload.png" style="width:700px;position:relative;left:50%;margin-left:-350px;" alt="RegistryCanisterInitPayload" />
+<img src="./images/Registry/RegistryCanisterInitPayload.png" style="width:600px;position:relative;left:50%;margin-left:-300px;" alt="RegistryCanisterInitPayload" />
 
 
 这个类型，首先有个唯一的字段 mutations，它是一个动态数组，而里面的 RegistryAtomicMutateRequest 有两个字段，其中一个也叫 mutations，另一个叫 preconditions。它们里面的字段都包含了一些 `Vec<u8>` 的值。
 
 
-```rs
+```rust
     let registry = registry_mut();
 
     init_payload
@@ -322,7 +325,7 @@ pub fn arg_data() -> Vec<u8> {
 通过遍历 init_payload 的 mutations 这个数组里面的每一个 RegistryAtomicMutateRequest 类型的值，执行 maybe_apply_mutation_internal 方法，输入 RegistryAtomicMutateRequest 的 mutations 字段的数据（`Vec<RegistryMutation>`) 来修改 Registry 示例。
 
 这个方法执行了哪些功能？
-```rs
+```rust
 // https://github.com/dfinity/ic/blob/8fffeb4be1/rs/registry/canister/src/registry.rs#L271-L294
 /// Checks that invariants hold after applying mutations
 pub fn maybe_apply_mutation_internal(&mut self, mutations: Vec<RegistryMutation>) {
@@ -351,7 +354,7 @@ pub fn maybe_apply_mutation_internal(&mut self, mutations: Vec<RegistryMutation>
 ```
 在做完一些验证和检查之后，真正的状态修改发生在 apply_mutations()
 
-```rs
+```rust
 // https://github.com/dfinity/ic/blob/8fffeb4be1/rs/registry/canister/src/registry.rs#L226-L240
 /// Applies the given mutations, without any check corresponding
 /// to the mutation_type.
@@ -455,12 +458,12 @@ fn pb_encode(msg: &impl prost::Message) -> Vec<u8> {
 1. changelog 里面，将整个最里面的 mutations 编码作为 value，以 version 作为 key，插入到 changelog 的红黑树里面，已经把版本和对应的数据都保存好了，store 里面存的可能是为了方便查询的冗余数据，因为使用了 Map 结构。
 2. RegistryAtomicMutateRequest 里面的 preconditions 字段没有使用，代码里面也是通过构造一个空的数组来填充的：`preconditions: vec![]`
 
-最后，又调用了 `recertify_registry()`，将刚刚更新的 version 和 changelog 变化得到 root_hash，然后存到 certified_data 里面。
+最后，又调用了 `recertify_registry()`，根据刚刚更新的 version 和 changelog 得到 root_hash，然后存到 certified_data 里面。
 
 ### canister_pre_upgrade
 
 升级前函数，将系统的状态先提前 stable 保存一下，然后在升级的时候 stable 保存的数据是不会丢失的，然后升级之后有一个升级后函数讲数据恢复出来。
-```rs
+```rust
 #[export_name = "canister_pre_upgrade"]
 fn canister_pre_upgrade() {
     println!("{}canister_pre_upgrade", LOG_PREFIX);
@@ -474,10 +477,10 @@ fn canister_pre_upgrade() {
     stable::set(&serialized);
 }
 ```
-这个函数先打印一些信息出来，然后获取 Registry 示例 registry，其实这里没必要用 mut，因为并不会修改状态（删掉 mut 可以编译通过）。然后根据 registry 的信息构造了一个 RegistryCanisterStableStorage 数据，并且把这个数据编码到一个 buff serialized 里面，然后调用 stable 的 set 接口保存这个数据。
+这个函数先打印一些信息出来，然后获取 Registry 示例 registry，其实这里没必要用 mut，因为并不会修改状态（删掉 mut 可以编译通过）。然后根据 registry 的信息构造了一个 RegistryCanisterStableStorage 数据，并且把这个数据编码到一个 buffer serialized 里面，然后调用 stable 的 set 接口保存这个数据。
 
 来看一下 stable 的 set 是怎么存的
-```rs
+```rust
 /// The wasm page size is 64KiB
 const PAGE_SIZE: f64 = 64.0 * 1024.0;
 
@@ -522,11 +525,11 @@ pub fn set_length(len: u32) {
 
 接口看一下 RegistryCanisterStableStorage 数据结构：
 
-<img src="./images/RegistryCanisterStableStorage.png" alt="RegistryCanisterStableStorage" width="500"/>
+<img src="./images/Registry/RegistryCanisterStableStorage.png" alt="RegistryCanisterStableStorage" width="500"/>
 
 因为是要把 Registry 结构存下来，所以和 Registry 结构比较类似。
 
-```rs
+```rust
 /// Serializes the registry contents using the specified version of stable
 /// representation.
 fn serializable_form_at(&self, repr_version: ReprVersion) -> RegistryStableStorage {
@@ -567,7 +570,7 @@ pub fn serializable_form(&self) -> RegistryStableStorage {
 ### canister_post_upgrade
 升级后函数，同样的，执行 hook()，设置好标准输出以及 panic 时打印错误信息，发生 panic 所在的代码位置。
 
-```rs
+```rust
 #[export_name = "canister_post_upgrade"]
 fn canister_post_upgrade() {
     dfn_core::printer::hook();
@@ -586,7 +589,7 @@ fn canister_post_upgrade() {
 ```
 
 在打印一些升级消息之后，接着从 stable 存储里面读到对应的数据，有一个 stable_read 的系统接口，可以读到。先读前 4 字节，获取整个的长度，然后再根据长度获取存储的数据。
-```rs
+```rust
 /// Gets the contents of the stable memory
 pub fn get() -> Vec<u8> {
     let len = length();
@@ -606,11 +609,11 @@ pub fn length() -> u32 {
 }
 ```
 
-看一下怎么从 RegistryStableStorage 恢复出 Registry 的。先检查 Registry 是不是所有的字段都是 Default，然后得到 version。之前 version 是通过指定 ReprVersion::Version1，也就是执行 Version1 这个代码分支。先遍历 changelog 字段，获取到 entry 这个 ChangelogEntry 类型的实例，对 Registry 先填充无用信息，目的是把版本号对应起来，然后把 entry 里面的 encoded_mutation 解码成 RegistryAtomicMutateRequest 类型，并将获取到的 mutations 写入 Registry。
+看一下怎么从 RegistryStableStorage 恢复出 Registry 的。先检查 Registry 是不是所有的字段是不是空，或者为 0，然后得到 version。之前 version 是通过指定 ReprVersion::Version1，也就是执行 Version1 这个代码分支。先遍历 changelog 字段，获取到 entry 这个 ChangelogEntry 类型的实例，对 Registry 先填充无用信息，目的是把版本号对应起来，然后把 entry 里面的 encoded_mutation 解码成 RegistryAtomicMutateRequest 类型，并将获取到的 mutations 写入 Registry。
 
-而且从前面可以看到，entry（ChangelogEntry 类型）的 encoded_mutation 是直接复制的 Registry 的节点（`Node<K, V>`）的 V，而这个 V 是直接从 RegistryAtomicMutateRequest encode 过来的。所以只是 canister_init 时所有的数据（包括 store 和 changelog）都会恢复过来。
+而且从前面可以看到，entry（ChangelogEntry 类型）的 encoded_mutation 是直接复制的 Registry 的节点（`Node<K, V>`）的 V，而这个 V 是直接从 RegistryAtomicMutateRequest encode 过来的。所以 canister_init 时所有的数据（包括 store 和 changelog）都会恢复过来。
 
-```rs
+```rust
 /// Sets the content of the registry from its serialized representation.
 ///
 /// Panics if not currently empty: this is only meant to be used in
@@ -675,7 +678,7 @@ pub fn from_serializable_form(&mut self, stable_repr: RegistryStableStorage) {
 总之执行升级后函数，里面会填充一些无用数据，但是之前的数据都恢复过来了。
 
 ### update_authz
-```rs
+```rust
 #[export_name = "canister_update update_authz"]
 fn update_authz() {
     check_caller_is_root();
@@ -692,7 +695,7 @@ fn update_authz() {
 ```
 根据打印的信息，执行这个函数应该不会修改任何状态。确实也是这样，它首先调用 check_caller_is_root，通过系统接口 msg_caller_copy 获取的调用者的 PrincipalId，然后检查该 PrincipalId 是否和 Root 的 Canister id 对得上。
 
-```rs
+```rust
 pub fn check_caller_is_root() {
     if caller() != PrincipalId::from(ic_nns_constants::ROOT_CANISTER_ID) {
         panic!("Only the root canister is allowed to call this method.");
@@ -712,7 +715,7 @@ pub fn caller() -> PrincipalId {
 
 然后接着调用了一个 over 函数，输入两个函数作为参数，具体功能还没理得很清楚（Todo），大概为了方便使用不同的编码，比如有的对外接口是基于 candid，有的是 protobuf，做了个封装。这种方式调用函数后续会有很多。
 
-```rs
+```rust
 /// Over allows you to create canister endpoints easily
 /// ```no_run
 /// # use dfn_core::over;
@@ -747,7 +750,7 @@ where
 ```
 
 ### current_authz
-```rs
+```rust
 #[export_name = "canister_query current_authz"]
 fn current_authz() {
     over(candid, |_: ()| {
@@ -764,7 +767,7 @@ fn current_authz() {
 ```
 同样根据打印的信息，执行这个函数应该不会返回有用信息。只是返回 CanisterAuthzInfo 的初始化数据。
 
-<img src="./images/CanisterAuthzInfo.png" alt="CanisterAuthzInfo" width="500"/>
+<img src="./images/Registry/CanisterAuthzInfo.png" alt="CanisterAuthzInfo" width="400"/>
 
 ### get_changes_since
 
@@ -782,7 +785,7 @@ fn current_authz() {
 
 ### atomic_mutate
 atomic_mutate()，这个函数只允许 Governance 和 Root 这两个 canister 来调用。然后，把调用参数反序列化，如果反序列化成功，就对 Registry 的可变实例执行 maybe_apply_mutation_internal() 来进行修改。然后调用 recertify_registry() 来更新 certified_data。最后把返回结果序列化返回给调用者。
-```rs
+```rust
 #[export_name = "canister_update atomic_mutate"]
 fn atomic_mutate() {
     let caller = dfn_core::api::caller();
@@ -831,7 +834,7 @@ fn atomic_mutate() {
 
 看一下反序列化函数入参是怎么做的，参数需要是 `Vec<u8>` 的类型，它能够解码成 RegistryAtomicMutateRequest 类型就行。然后序列号返回结果是把返回结果编码成 `Vec<u8>`。
 
-```rs
+```rust
 /// Deserializes the arguments for a request to the atomic_mutate() function in
 /// the registry canister, from protobuf.
 pub fn deserialize_atomic_mutate_request(
@@ -862,7 +865,7 @@ pub fn serialize_atomic_mutate_response(
 ```
 这里能够直接 .encode() .decode() 就把这些工作完成了，是因为 RegistryAtomicMutateRequest 这个 struct 已经实现好 Message 这个 trait，里面包含 encode，decode 方法。
 
-```rs
+```rust
 /// Message corresponding to a list of mutations to apply, atomically, to the
 /// registry canister. If any of the mutations fails, the whole operation will fail.
 #[derive(candid::CandidType, candid::Deserialize, Eq)]
@@ -879,7 +882,7 @@ pub struct RegistryAtomicMutateRequest {
 
 最后看一下 reply()，它调用系统接口 msg_reply_data_append() 和 msg_reply() 来返回数据。这样除了函数本身有一个返回值之外，还可以通过这种方式返回数据。
 
-```rs
+```rust
 /// Replies with the given byte array.
 /// Note, currently we do not support chunkwise assembling of the response.
 /// Warning if you use this with an endpoint it will cause a trap due to the
@@ -895,7 +898,7 @@ pub fn reply(payload: &[u8]) {
 
 ### bless_replica_version
 
-```rs
+```rust
 #[export_name = "canister_update bless_replica_version"]
 fn bless_replica_version() {
     check_caller_is_governance_and_log("bless_replica_version");
@@ -907,7 +910,7 @@ fn bless_replica_version() {
 ```
 这个函数只允许 Governance Canister 来调用。
 
-```rs
+```rust
 fn check_caller_is_governance_and_log(method_name: &str) {
     let caller = dfn_core::api::caller();
     println!("{}call: {} from: {}", LOG_PREFIX, method_name, caller);
@@ -922,12 +925,12 @@ fn check_caller_is_governance_and_log(method_name: &str) {
 }
 ```
 
-<img src="./images/BlessReplicaVersionPayload.png" alt="BlessReplicaVersionPayload" width="500"/>
+<img src="./images/BlessReplicaVersionPayload.png" alt="BlessReplicaVersionPayload" width="400"/>
 
 
 ### update_subnet_replica_version
 
-```rs
+```rust
 
 #[export_name = "canister_update update_subnet_replica_version"]
 fn update_subnet_replica_version() {
@@ -938,12 +941,83 @@ fn update_subnet_replica_version() {
     });
 }
 ```
+<img src="./images/Registry/UpdateSubnetPayload.png" alt="UpdateSubnetPayload" width="300"/>
 
+```rust
+pub fn do_update_subnet_replica_version(&mut self, payload: UpdateSubnetReplicaVersionPayload) {
+    println!(
+        "{}do_update_subnet_replica_version: {:?}",
+        LOG_PREFIX, payload
+    );
 
+    check_replica_version_is_blessed(self, &payload.replica_version_id);
 
+    // Get the subnet record
+    let subnet_key = make_subnet_record_key(SubnetId::from(payload.subnet_id));
+    let mutation = match self.get(subnet_key.as_bytes(), self.latest_version()) {
+        Some(RegistryValue {
+            value: subnet_record_vec,
+            version: _,
+            deletion_marker: _,
+        }) => {
+            let mut subnet_record =
+                decode_registry_value::<SubnetRecord>(subnet_record_vec.clone());
+            subnet_record.replica_version_id = payload.replica_version_id;
+            RegistryMutation {
+                mutation_type: registry_mutation::Type::Update as i32,
+                key: subnet_key.as_bytes().to_vec(),
+                value: encode_or_panic(&subnet_record),
+            }
+        }
+        None => panic!("Error while fetching the subnet record"),
+    };
+
+    let mutations = vec![mutation];
+
+    // Check invariants before applying mutations
+    self.maybe_apply_mutation_internal(mutations)
+}
+```
 
 
 ### update_icp_xdr_conversion_rate
+
+```rust
+#[export_name = "canister_update update_icp_xdr_conversion_rate"]
+fn update_icp_xdr_conversion_rate() {
+    check_caller_is_governance_and_log("update_icp_xdr_conversion_rate");
+    over(candid_one, |payload: UpdateIcpXdrConversionRatePayload| {
+        registry_mut().do_update_icp_xdr_conversion_rate(payload);
+        recertify_registry();
+    });
+}
+```
+
+<img src="./images/Registry/UpdateIcpXdrConversionRatePayload.png" alt="UpdateIcpXdrConversionRatePayload" width="400"/>
+
+```rust
+pub fn do_update_icp_xdr_conversion_rate(
+    &mut self,
+    payload: UpdateIcpXdrConversionRatePayload,
+) {
+    println!(
+        "{}do_update_icp_xdr_conversion_rate: {:?}",
+        LOG_PREFIX, payload
+    );
+
+    // If there is no ICP/XDR conversion rate, we have to Insert new one
+    let mutations = vec![upsert(
+        make_icp_xdr_conversion_rate_record_key()
+            .as_bytes()
+            .to_vec(),
+        encode_or_panic::<IcpXdrConversionRateRecord>(&payload.into()),
+    )];
+
+    // Check invariants before applying mutations
+    self.maybe_apply_mutation_internal(mutations);
+}
+```
+
 
 ### add_node
 
@@ -978,3 +1052,7 @@ fn update_subnet_replica_version() {
 ### update_unassigned_nodes_config
 
 ### get_node_providers_monthly_xdr_rewards
+
+# Reference
+* https://smartcontracts.org/docs/interface-spec/index.html#certification
+* https://smartcontracts.org/docs/interface-spec/index.html#canister-signatures
