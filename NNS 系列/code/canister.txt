@@ -1,0 +1,269 @@
+subnet:
+"tdb26-jop6k-aogll-7ltgs-eruif-6kk7m-qpktf-gdiqx-mxtrf-vb5e6-eqe"
+Some(CanisterId { principal_id: Some(PrincipalId { raw: [0, 0, 0, 0, 0, 0, 0, 0, 1, 1] }) })
+Some(CanisterId { principal_id: Some(PrincipalId { raw: [0, 0, 0, 0, 0, 15, 255, 255, 1, 1] }) })
+"rwlgt-iiaaa-aaaaa-aaaaa-cai"
+"n5n4y-3aaaa-aaaaa-p777q-cai"
+0
+1048575
+
+subnet:
+"snjp4-xlbw4-mnbog-ddwy6-6ckfd-2w5a2-eipqo-7l436-pxqkh-l6fuv-vae"
+Some(CanisterId { principal_id: Some(PrincipalId { raw: [0, 0, 0, 0, 0, 16, 0, 0, 1, 1] }) })
+Some(CanisterId { principal_id: Some(PrincipalId { raw: [0, 0, 0, 0, 0, 31, 255, 255, 1, 1] }) })
+"5v3p4-iyaaa-aaaaa-qaaaa-cai"
+"b65vx-3qaaa-aaaaa-7777q-cai"
+1048576
+2097151
+
+subnet:
+"qxesv-zoxpm-vc64m-zxguk-5sj74-35vrb-tbgwg-pcird-5gr26-62oxl-cae"
+Some(CanisterId { principal_id: Some(PrincipalId { raw: [0, 0, 0, 0, 0, 32, 0, 0, 1, 1] }) })
+Some(CanisterId { principal_id: Some(PrincipalId { raw: [0, 0, 0, 0, 0, 47, 255, 255, 1, 1] }) })
+"jrlun-jiaaa-aaaab-aaaaa-cai"
+"v2nog-2aaaa-aaaab-p777q-cai"
+2097152
+3145727
+
+subnet:
+"pae4o-o6dxf-xki7q-ezclx-znyd6-fnk6w-vkv5z-5lfwh-xym2i-otrrw-fqe"
+Some(CanisterId { principal_id: Some(PrincipalId { raw: [0, 0, 0, 0, 0, 48, 0, 0, 1, 1] }) })
+Some(CanisterId { principal_id: Some(PrincipalId { raw: [0, 0, 0, 0, 0, 63, 255, 255, 1, 1] }) })
+"fs35c-jyaaa-aaaab-qaaaa-cai"
+"zz5hj-2qaaa-aaaab-7777q-cai"
+3145728
+4194303
+
+subnet:
+"4zbus-z2bmt-ilreg-xakz4-6tyre-hsqj4-slb4g-zjwqo-snjcc-iqphi-3qe"
+Some(CanisterId { principal_id: Some(PrincipalId { raw: [0, 0, 0, 0, 0, 64, 0, 0, 1, 1] }) })
+Some(CanisterId { principal_id: Some(PrincipalId { raw: [0, 0, 0, 0, 0, 79, 255, 255, 1, 1] }) })
+"2vstd-2aaaa-aaaac-aaaaa-cai"
+"g6uji-jiaaa-aaaac-p777q-cai"
+4194304
+5242879
+
+subnet:
+"w4asl-4nmyj-qnr7c-6cqq4-tkwmt-o26di-iupkq-vx4kt-asbrx-jzuxh-4ae"
+Some(CanisterId { principal_id: Some(PrincipalId { raw: [0, 0, 0, 0, 0, 80, 0, 0, 1, 1] }) })
+Some(CanisterId { principal_id: Some(PrincipalId { raw: [0, 0, 0, 0, 0, 95, 255, 255, 1, 1] }) })
+"wwc2m-2qaaa-aaaac-qaaaa-cai"
+"k5eah-jyaaa-aaaac-7777q-cai"
+5242880
+6291455
+
+subnet:
+"io67a-2jmkw-zup3h-snbwi-g6a5n-rm5dn-b6png-lvdpl-nqnto-yih6l-gqe"
+Some(CanisterId { principal_id: Some(PrincipalId { raw: [0, 0, 0, 0, 0, 96, 0, 0, 1, 1] }) })
+Some(CanisterId { principal_id: Some(PrincipalId { raw: [0, 0, 0, 0, 0, 111, 255, 255, 1, 1] }) })
+"cssb5-3aaaa-aaaad-aaaaa-cai"
+"6zu3w-iiaaa-aaaad-p777q-cai"
+6291456
+7340031
+
+subnet:
+"5kdm2-62fc6-fwnja-hutkz-ycsnm-4z33i-woh43-4cenu-ev7mi-gii6t-4ae"
+Some(CanisterId { principal_id: Some(PrincipalId { raw: [0, 0, 0, 0, 0, 112, 0, 0, 1, 1] }) })
+Some(CanisterId { principal_id: Some(PrincipalId { raw: [0, 0, 0, 0, 0, 127, 255, 255, 1, 1] }) })
+"orcis-3qaaa-aaaad-qaaaa-cai"
+"s2esz-iyaaa-aaaad-7777q-cai"
+7340032
+8388607
+
+subnet:
+"shefu-t3kr5-t5q3w-mqmdq-jabyv-vyvtf-cyyey-3kmo4-toyln-emubw-4qe"
+Some(CanisterId { principal_id: Some(PrincipalId { raw: [0, 0, 0, 0, 0, 128, 0, 0, 1, 1] }) })
+Some(CanisterId { principal_id: Some(PrincipalId { raw: [0, 0, 0, 0, 0, 143, 255, 255, 1, 1] }) })
+"hryns-myaaa-aaaae-aaaaa-cai"
+"326xz-7qaaa-aaaae-p777q-cai"
+8388608
+9437183
+
+subnet:
+"ejbmu-grnam-gk6ol-6irwa-htwoj-7ihfl-goimw-hlnvh-abms4-47v2e-zqe"
+Some(CanisterId { principal_id: Some(PrincipalId { raw: [0, 0, 0, 0, 0, 144, 0, 0, 1, 1] }) })
+Some(CanisterId { principal_id: Some(PrincipalId { raw: [0, 0, 0, 0, 0, 159, 255, 255, 1, 1] }) })
+"lsie5-miaaa-aaaae-qaaaa-cai"
+"xzo6w-7aaaa-aaaae-7777q-cai"
+9437184
+10485759
+
+subnet:
+"eq6en-6jqla-fbu5s-daskr-h6hx2-376n5-iqabl-qgrng-gfqmv-n3yjr-mqe"
+Some(CanisterId { principal_id: Some(PrincipalId { raw: [0, 0, 0, 0, 0, 160, 0, 0, 1, 1] }) })
+Some(CanisterId { principal_id: Some(PrincipalId { raw: [0, 0, 0, 0, 0, 175, 255, 255, 1, 1] }) })
+"7wy7m-nyaaa-aaaaf-aaaaa-cai"
+"d56fh-6qaaa-aaaaf-p777q-cai"
+10485760
+11534335
+
+subnet:
+"csyj4-zmann-ys6ge-3kzi6-onexi-obayx-2fvak-zersm-euci4-6pslt-lae"
+Some(CanisterId { principal_id: Some(PrincipalId { raw: [0, 0, 0, 0, 0, 176, 0, 0, 1, 1] }) })
+Some(CanisterId { principal_id: Some(PrincipalId { raw: [0, 0, 0, 0, 0, 191, 255, 255, 1, 1] }) })
+"tviwd-niaaa-aaaaf-qaaaa-cai"
+"p6omi-6aaaa-aaaaf-7777q-cai"
+11534336
+12582911
+
+subnet:
+"lspz2-jx4pu-k3e7p-znm7j-q4yum-ork6e-6w4q6-pijwq-znehu-4jabe-kqe"
+Some(CanisterId { principal_id: Some(PrincipalId { raw: [0, 0, 0, 0, 0, 192, 0, 0, 1, 1] }) })
+Some(CanisterId { principal_id: Some(PrincipalId { raw: [0, 0, 0, 0, 0, 207, 255, 255, 1, 1] }) })
+"msbyc-6qaaa-aaaag-aaaaa-cai"
+"qzhcj-nyaaa-aaaag-p777q-cai"
+12582912
+13631487
+
+subnet:
+"lhg73-sax6z-2zank-6oer2-575lz-zgbxx-ptudx-5korm-fy7we-kh4hl-pqe"
+Some(CanisterId { principal_id: Some(PrincipalId { raw: [0, 0, 0, 0, 0, 208, 0, 0, 1, 1] }) })
+Some(CanisterId { principal_id: Some(PrincipalId { raw: [0, 0, 0, 0, 0, 223, 255, 255, 1, 1] }) })
+"arrrn-6aaaa-aaaag-qaaaa-cai"
+"42xlg-niaaa-aaaag-7777q-cai"
+13631488
+14680063
+
+subnet:
+"gmq5v-hbozq-uui6y-o55wc-ihop3-562wb-3qspg-nnijg-npqp5-he3cj-3ae"
+Some(CanisterId { principal_id: Some(PrincipalId { raw: [0, 0, 0, 0, 0, 224, 0, 0, 1, 1] }) })
+Some(CanisterId { principal_id: Some(PrincipalId { raw: [0, 0, 0, 0, 0, 239, 255, 255, 1, 1] }) })
+"uvbk4-7qaaa-aaaah-aaaaa-cai"
+"i6hqx-myaaa-aaaah-p777q-cai"
+14680064
+15728639
+
+subnet:
+"pjljw-kztyl-46ud4-ofrj6-nzkhm-3n4nt-wi3jt-ypmav-ijqkt-gjf66-uae"
+Some(CanisterId { principal_id: Some(PrincipalId { raw: [0, 0, 0, 0, 0, 240, 0, 0, 1, 1] }) })
+Some(CanisterId { principal_id: Some(PrincipalId { raw: [0, 0, 0, 0, 0, 255, 255, 255, 1, 1] }) })
+"ywrdt-7aaaa-aaaah-qaaaa-cai"
+"e5xzy-miaaa-aaaah-7777q-cai"
+15728640
+16777215
+
+subnet:
+"brlsh-zidhj-3yy3e-6vqbz-7xnih-xeq2l-as5oc-g32c4-i5pdn-2wwof-oae"
+Some(CanisterId { principal_id: Some(PrincipalId { raw: [0, 0, 0, 0, 1, 0, 0, 0, 1, 1] }) })
+Some(CanisterId { principal_id: Some(PrincipalId { raw: [0, 0, 0, 0, 1, 15, 255, 255, 1, 1] }) })
+"i3flu-baaaa-aaaai-aaaaa-cai"
+"uqdr7-siaaa-aaaai-p777q-cai"
+16777216
+17825791
+
+subnet:
+"mpubz-g52jc-grhjo-5oze5-qcj74-sex34-omprz-ivnsm-qvvhr-rfzpv-vae"
+Some(CanisterId { principal_id: Some(PrincipalId { raw: [0, 0, 0, 0, 1, 16, 0, 0, 1, 1] }) })
+Some(CanisterId { principal_id: Some(PrincipalId { raw: [0, 0, 0, 0, 1, 31, 255, 255, 1, 1] }) })
+"eyvc3-bqaaa-aaaai-qaaaa-cai"
+"yttyq-syaaa-aaaai-7777q-cai"
+17825792
+18874367
+
+subnet:
+"qdvhd-os4o2-zzrdw-xrcv4-gljou-eztdp-bj326-e6jgr-tkhuc-ql6v2-yqe"
+Some(CanisterId { principal_id: Some(PrincipalId { raw: [0, 0, 0, 0, 1, 32, 0, 0, 1, 1] }) })
+Some(CanisterId { principal_id: Some(PrincipalId { raw: [0, 0, 0, 0, 1, 47, 255, 255, 1, 1] }) })
+"q4fzk-aaaaa-aaaaj-aaaaa-cai"
+"mxddb-tiaaa-aaaaj-p777q-cai"
+18874368
+19922943
+
+subnet:
+"jtdsg-3h6gi-hs7o5-z2soi-43w3z-soyl3-ajnp3-ekni5-sw553-5kw67-nqe"
+Some(CanisterId { principal_id: Some(PrincipalId { raw: [0, 0, 0, 0, 1, 48, 0, 0, 1, 1] }) })
+Some(CanisterId { principal_id: Some(PrincipalId { raw: [0, 0, 0, 0, 1, 63, 255, 255, 1, 1] }) })
+"47vqf-aqaaa-aaaaj-qaaaa-cai"
+"autko-tyaaa-aaaaj-7777q-cai"
+19922944
+20971519
+
+subnet:
+"k44fs-gm4pv-afozh-rs7zw-cg32n-u7xov-xqyx3-2pw5q-eucnu-cosd4-uqe"
+Some(CanisterId { principal_id: Some(PrincipalId { raw: [0, 0, 0, 0, 1, 64, 0, 0, 1, 1] }) })
+Some(CanisterId { principal_id: Some(PrincipalId { raw: [0, 0, 0, 0, 1, 79, 255, 255, 1, 1] }) })
+"dy46e-tiaaa-aaaak-aaaaa-cai"
+"7t2ep-aaaaa-aaaak-p777q-cai"
+20971520
+22020095
+
+subnet:
+"opn46-zyspe-hhmyp-4zu6u-7sbrh-dok77-m7dch-im62f-vyimr-a3n2c-4ae"
+Some(CanisterId { principal_id: Some(PrincipalId { raw: [0, 0, 0, 0, 1, 80, 0, 0, 1, 1] }) })
+Some(CanisterId { principal_id: Some(PrincipalId { raw: [0, 0, 0, 0, 1, 95, 255, 255, 1, 1] }) })
+"p3mxl-tyaaa-aaaak-qaaaa-cai"
+"tqkna-aqaaa-aaaak-7777q-cai"
+22020096
+23068671
+
+subnet:
+"6pbhf-qzpdk-kuqbr-pklfa-5ehhf-jfjps-zsj6q-57nrl-kzhpd-mu7hc-vae"
+Some(CanisterId { principal_id: Some(PrincipalId { raw: [0, 0, 0, 0, 1, 96, 0, 0, 1, 1] }) })
+Some(CanisterId { principal_id: Some(PrincipalId { raw: [0, 0, 0, 0, 1, 111, 255, 255, 1, 1] }) })
+"374m2-siaaa-aaaal-aaaaa-cai"
+"hu2wr-baaaa-aaaal-p777q-cai"
+23068672
+24117247
+
+subnet:
+"e66qm-3cydn-nkf4i-ml4rb-4ro6o-srm5s-x5hwq-hnprz-3meqp-s7vks-5qe"
+Some(CanisterId { principal_id: Some(PrincipalId { raw: [0, 0, 0, 0, 1, 112, 0, 0, 1, 1] }) })
+Some(CanisterId { principal_id: Some(PrincipalId { raw: [0, 0, 0, 0, 1, 127, 255, 255, 1, 1] }) })
+"x4mfv-syaaa-aaaal-qaaaa-cai"
+"lxk76-bqaaa-aaaal-7777q-cai"
+24117248
+25165823
+
+subnet:
+"4ecnw-byqwz-dtgss-ua2mh-pfvs7-c3lct-gtf4e-hnu75-j7eek-iifqm-sqe"
+Some(CanisterId { principal_id: Some(PrincipalId { raw: [0, 0, 0, 0, 1, 128, 0, 0, 1, 1] }) })
+Some(CanisterId { principal_id: Some(PrincipalId { raw: [0, 0, 0, 0, 1, 143, 255, 255, 1, 1] }) })
+"64wav-fqaaa-aaaam-aaaaa-cai"
+"cxq26-wyaaa-aaaam-p777q-cai"
+25165824
+26214399
+
+subnet:
+"yinp6-35cfo-wgcd2-oc4ty-2kqpf-t4dul-rfk33-fsq3r-mfmua-m2ngh-jqe"
+Some(CanisterId { principal_id: Some(PrincipalId { raw: [0, 0, 0, 0, 1, 144, 0, 0, 1, 1] }) })
+Some(CanisterId { principal_id: Some(PrincipalId { raw: [0, 0, 0, 0, 1, 159, 255, 255, 1, 1] }) })
+"s7gj2-faaaa-aaaam-qaaaa-cai"
+"ouatr-wiaaa-aaaam-7777q-cai"
+26214400
+27262975
+
+subnet:
+"w4rem-dv5e3-widiz-wbpea-kbttk-mnzfm-tzrc7-svcj3-kbxyb-zamch-hqe"
+Some(CanisterId { principal_id: Some(PrincipalId { raw: [0, 0, 0, 0, 1, 160, 0, 0, 1, 1] }) })
+Some(CanisterId { principal_id: Some(PrincipalId { raw: [0, 0, 0, 0, 1, 175, 255, 255, 1, 1] }) })
+"g3wsl-eqaaa-aaaan-aaaaa-cai"
+"2qqia-xyaaa-aaaan-p777q-cai"
+27262976
+28311551
+
+subnet:
+"cv73p-6v7zi-u67oy-7jc3h-qspsz-g5lrj-4fn7k-xrax3-thek2-sl46v-jae"
+Some(CanisterId { principal_id: Some(PrincipalId { raw: [0, 0, 0, 0, 1, 176, 0, 0, 1, 1] }) })
+Some(CanisterId { principal_id: Some(PrincipalId { raw: [0, 0, 0, 0, 1, 191, 255, 255, 1, 1] }) })
+"kyg3e-eaaaa-aaaan-qaaaa-cai"
+"wtabp-xiaaa-aaaan-7777q-cai"
+28311552
+29360127
+
+subnet:
+"o3ow2-2ipam-6fcjo-3j5vt-fzbge-2g7my-5fz2m-p4o2t-dwlc4-gt2q7-5ae"
+Some(CanisterId { principal_id: Some(PrincipalId { raw: [0, 0, 0, 0, 1, 192, 0, 0, 1, 1] }) })
+Some(CanisterId { principal_id: Some(PrincipalId { raw: [0, 0, 0, 0, 1, 207, 255, 255, 1, 1] }) })
+"v7pvf-xyaaa-aaaao-aaaaa-cai"
+"jujpo-eqaaa-aaaao-p777q-cai"
+29360128
+30408703
+
+subnet:
+"fuqsr-in2lc-zbcjj-ydmcw-pzq7h-4xm2z-pto4i-dcyee-5z4rz-x63ji-nae"
+Some(CanisterId { principal_id: Some(PrincipalId { raw: [0, 0, 0, 0, 1, 208, 0, 0, 1, 1] }) })
+Some(CanisterId { principal_id: Some(PrincipalId { raw: [0, 0, 0, 0, 1, 223, 255, 255, 1, 1] }) })
+"z474k-xiaaa-aaaao-qaaaa-cai"
+"fxzgb-eaaaa-aaaao-7777q-cai"
+30408704
+31457279

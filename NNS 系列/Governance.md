@@ -64,24 +64,64 @@ Governance canister，功能上是治理。里面会管理神经元，以及投�
 
 ### forward_vote
 
+```rust
+manage_neuron_(ManageNeuron)
+```
+
 ### transaction_notification
+
+Please use ManageNeuron::ClaimOrRefresh. 
 
 ### transaction_notification_pb
 
+Please use ManageNeuron::ClaimOrRefresh. 
+
 ### claim_or_refresh_neuron_from_account
 
+claim_or_refresh_neuron_from_account_
+manage_neuron_
+
+Please use ManageNeuron::ClaimOrRefresh. 
+
 ### claim_gtc_neurons
+```rust
+fn claim_gtc_neurons_()
+  governance_mut().claim_gtc_neurons()
+
+
+```
 
 ### transfer_gtc_neuron
-
+governance_mut()
+        .transfer_gtc_neuron(
 ### manage_neuron
 
-### get_full_neuron_by_id_or_subaccount
+manage_neuron_(ManageNeuron)
 
+### get_full_neuron_by_id_or_subaccount
+```rust
+get_full_neuron_by_id_or_subaccount_
+
+fn get_full_neuron_by_id_or_subaccount_(
+    by: NeuronIdOrSubaccount,
+) -> Result<Neuron, GovernanceError> {
+    governance().get_full_neuron_by_id_or_subaccount(&by, &caller())
+}
+```
 ### get_full_neuron
 
-### get_neuron_info
+```rust
+fn get_full_neuron_(neuron_id: NeuronId) -> Result<Neuron, GovernanceError> {
+    governance().get_full_neuron(&NeuronIdProto::from(neuron_id), &caller())
+}
 
+```
+### get_neuron_info
+```rust
+fn get_neuron_info_(neuron_id: NeuronId) -> Result<NeuronInfo, GovernanceError> {
+    governance().get_neuron_info(&NeuronIdProto::from(neuron_id))
+}
+```
 ### get_neuron_info_by_id_or_subaccount
 
 ### get_proposal_info
@@ -117,3 +157,6 @@ Governance canister，功能上是治理。里面会管理神经元，以及投�
 ### http_request
 
 ### __get_candid_interface_tmp_hack
+
+
+
