@@ -903,9 +903,14 @@ pub fn reply(payload: &[u8]) {
 fn bless_replica_version() {
     check_caller_is_governance_and_log("bless_replica_version");
     over(candid_one, |payload: BlessReplicaVersionPayload| {
-        registry_mut().do_bless_replica_version(payload);
-        recertify_registry();
+        bless_replica_version_(payload)
     });
+}
+
+#[candid_method(update, rename = "bless_replica_version")]
+fn bless_replica_version_(payload: BlessReplicaVersionPayload) {
+    registry_mut().do_bless_replica_version(payload);
+    recertify_registry();
 }
 ```
 这个函数只允许 Governance Canister 来调用。
@@ -924,6 +929,67 @@ fn check_caller_is_governance_and_log(method_name: &str) {
     );
 }
 ```
+
+```rust
+/// Adds a new replica version to the registry and blesses it, i.e., adds
+/// the version's ID to the list of blessed replica versions.
+///
+/// This method is called by the governance canister, after a proposal
+/// for blessing a new replica version has been accepted.
+pub fn do_bless_replica_version(&mut self, payload: BlessReplicaVersionPayload) {
+    println!("{}do_bless_replica_version: {:?}", LOG_PREFIX, payload);
+
+    let version = self.latest_version();
+    // Get the current list
+    let blessed_key = make_blessed_replica_version_key();
+    let before_append = match self.get(blessed_key.as_bytes(), version) {
+        Some(old_blessed_replica_version) => {
+            decode_registry_value::<BlessedReplicaVersions>(
+                old_blessed_replica_version.value.clone(),
+            )
+            .blessed_version_ids
+        }
+        None => vec![],
+    };
+
+    let after_append = {
+        let mut copy = before_append.clone();
+        copy.push(payload.replica_version_id.clone());
+        copy
+    };
+    println!(
+        "{}Blessed version before: {:?} and after: {:?}",
+        LOG_PREFIX, before_append, after_append
+    );
+
+    let mutations = vec![
+        // Register the new version (that is, insert the new ReplicaVersionRecord)
+        RegistryMutation {
+            mutation_type: registry_mutation::Type::Insert as i32,
+            key: make_replica_version_key(&payload.replica_version_id)
+                .as_bytes()
+                .to_vec(),
+            value: encode_or_panic(&ReplicaVersionRecord {
+                release_package_url: payload.release_package_url.clone(),
+                release_package_sha256_hex: payload.release_package_sha256_hex,
+            }),
+        },
+        // Bless the new version (that is, update the list of blessed versions)
+        RegistryMutation {
+            mutation_type: registry_mutation::Type::Upsert as i32,
+            key: blessed_key.as_bytes().to_vec(),
+            value: encode_or_panic(&BlessedReplicaVersions {
+                blessed_version_ids: after_append,
+            }),
+        },
+    ];
+
+    // Check invariants before applying mutations
+    self.maybe_apply_mutation_internal(mutations);
+}
+```
+
+
 
 <img src="./images/BlessReplicaVersionPayload.png" alt="BlessReplicaVersionPayload" width="400"/>
 
